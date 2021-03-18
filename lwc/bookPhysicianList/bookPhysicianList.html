@@ -1,0 +1,16 @@
+<template>
+
+    <h1 class="slds-m-left_x-small slds-text-heading_medium">Physicians:</h1>
+
+    <template if:true={hasPhysicians}>
+        
+        <div style="width: 600px;">
+            <c-data-table-physicians key-field="id" data={physicians} columns={columns} hide-checkbox-column></c-data-table-physicians>
+        </div>    
+
+    </template>
+    <template if:false={hasPhysicians}>
+        <p class="slds-m-left_x-small slds-m-top_x-small">There are no physicians currently assigned to this specialty.</p>
+    </template>
+
+</template>

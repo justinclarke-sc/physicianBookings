@@ -1,0 +1,38 @@
+<template>
+
+    <!-- Print out each physician -->
+    <template for:each={physicianList} for:item="physician">
+        <div key={physician}>
+            <div class="appointment" style={physician.style}>
+                <span class="appointment">
+
+                    <!-- If physician is booked, show name/status -->
+                    <template if:false={physician.showBooked}>
+
+                        <template if:true={physician.url}>
+                            <a key={physician} class="appointment" href={physician.url} title={physician.physicianName} target="_blank">
+                            {physician.physicianName} ({physician.status})
+                            </a>
+                        </template>
+                        <template if:false={physician.url}>
+                            {physician.physicianName} ({physician.status})
+                        </template>
+
+                    </template>
+
+                    <!-- If time slow is in the future -->
+                    <template if:true={allowBook}>
+
+                        <!-- If physician is available, show Book button -->
+                        <template if:true={physician.showBooked}>
+                            <lightning-button class={physician.id} variant="brand" label={physician.bookLabel} title={physician.bookLabel} onclick={handleBook}></lightning-button>
+                        </template>
+
+                    </template>
+
+                </span>
+            </div>
+        </div>
+    </template>
+
+</template>

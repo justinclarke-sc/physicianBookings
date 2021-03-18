@@ -1,0 +1,212 @@
+<apex:page showHeader="false" sidebar="false" controller="OAuthController" lightningStyleSheets="true">
+
+  <apex:slds />
+
+  <div class="slds-scope">
+
+    <h1 class="slds-text-heading_large slds-m-top_medium slds-m-bottom_small slds-m-left_small">Your Medical Facility</h1>
+
+  <article class="slds-card">
+    <div class="slds-card__header slds-grid">
+      <header class="slds-media slds-media_center slds-has-flexi-truncate">
+        <div class="slds-media__body">
+          <h2 class="slds-card__header-title slds-m-bottom_small">
+              <span>Authorize Google Calendar</span>
+          </h2>
+
+      <p class="slds-m-bottom_small">Please authorize your Google Calendar so that we can check your availability and add appointments to your calendar. Please click "Authorize" to start.</p>
+  
+      <!--Add buttons to initiate auth sequence and sign out-->
+      <button id="authorize_button" style="display: none;">Authorize</button>
+      <button id="signout_button" style="display: none;">Sign Out</button>
+  
+      <p id="content" class="slds-m-top_small"></p>
+  
+      <script type="text/javascript">
+        // Client ID and API key from the Developer Console
+        var CLIENT_ID = '924568179120-skls3h3napka25kj1b6tri2hbl3etn38.apps.googleusercontent.com';
+        var API_KEY = 'AIzaSyD9fTvO24koAQqJNze2TQLmoloMq4z70QU';
+  
+        // Array of API discovery doc URLs for APIs used by the quickstart
+        var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
+  
+        // Authorization scopes required by the API; multiple scopes can be
+        // included, separated by spaces.
+        // require access to read/write events
+        var SCOPES = "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events";
+  
+        var authorizeButton = document.getElementById('authorize_button');
+        var signoutButton = document.getElementById('signout_button');
+  
+        /**
+         *  On load, called to load the auth2 library and API client library.
+         */
+        function handleClientLoad() {
+          gapi.load('client:auth2', initClient);
+        }
+  
+        /**
+         *  Initializes the API client library and sets up sign-in state
+         *  listeners.
+         */
+        function initClient() {
+
+          // console.log('OAuth.initClient: start');
+
+          // console.log('oauth.initClient: gapi.client: ' + JSON.stringify(gapi.client));
+
+          // check if url parameters are set
+          const queryString = window.location.search;
+          // console.log('OAuth.initClient: queryString: ', queryString);
+          const urlParams = new URLSearchParams(queryString);
+          // console.log('OAuth.initClient: urlParams: ', urlParams);
+          const physicianId = urlParams.get('Id');
+          // console.log('OAuth.initClient: physicianId: ', physicianId);
+
+          window.physicianId = physicianId;
+
+          if (window.physicianId != null && window.physicianId != undefined && window.physicianId != '') {
+
+            gapi.client.init({
+              apiKey: API_KEY,
+              clientId: CLIENT_ID,
+              discoveryDocs: DISCOVERY_DOCS,
+              scope: SCOPES
+            }).then(function () {
+    
+              // Listen for sign-in state changes.
+              gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+    
+              // Handle the initial sign-in state.
+              updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+    
+              authorizeButton.onclick = handleAuthClick;
+              signoutButton.onclick = handleSignoutClick;
+    
+            }, function(error) {
+               let message = 'An error occurred: ' + JSON.stringify(error, null, 2);
+              //  console.log(message);
+               setMessage(message);
+            });
+
+          } else {
+            let message = 'An error occurred: Physician ID not specified';
+            // console.log(message);
+            setMessage(message);
+          }
+        }
+  
+        /**
+         *  Called when the signed in status changes, to update the UI
+         *  appropriately. After a sign-in, the API is called.
+         */
+        function updateSigninStatus(isSignedIn) {
+          if (isSignedIn) {
+            authorizeButton.style.display = 'none';
+            signoutButton.style.display = 'block';
+            setMessage('You are currently authorized. Please click Sign Out if you wish to re-authorize.');
+          } else {
+            authorizeButton.style.display = 'block';
+            signoutButton.style.display = 'none';
+            setMessage('Please click "Authorize" to grant access to your Google Calendar.');
+          }
+        }
+  
+        /**
+         *  Sign in the user upon button click.
+         */
+        function handleAuthClick(event) {
+          // gapi.auth2.getAuthInstance().signIn();
+  
+            // Request offline access
+            gapi.auth2.getAuthInstance().grantOfflineAccess().then(function(resp) {
+              // console.log('initClient.grantOfflineAccess: resp: ', resp);
+              // console.log('initClient.grantOfflineAccess: resp.code: ', resp.code);
+              var auth_code = resp.code;
+
+              // console.log('initClient.grantOfflineAccess: window.physicianId: ', window.physicianId);
+
+              // call apex method
+              captureAccessToken(window.physicianId, auth_code);
+            });
+  
+        }
+  
+        /**
+         *  Sign out the user upon button click.
+         */
+        function handleSignoutClick(event) {
+          gapi.auth2.getAuthInstance().signOut();
+        }
+  
+        /**
+         * Append a pre element to the body containing the given message
+         * as its text node. Used to display the results of the API call.
+         *
+         * @param {string} message Text to be placed in pre element.
+         */
+        function appendPre(message) {
+          var pre = document.getElementById('content');
+          var textContent = document.createTextNode(message + '\n');
+          pre.appendChild(textContent);
+        }
+
+        function setMessage(message) {
+          var pre = document.getElementById('content');
+          pre.innerHTML = message;
+        }
+  
+      </script>
+  
+      <script src="https://apis.google.com/js/api.js"
+        onload="this.onload=function(){};handleClientLoad()"
+        onreadystatechange="if (this.readyState === 'complete') this.onload()">
+      </script>
+
+    <apex:form >
+
+      <script type="text/javascript">
+        function captureAccessToken(physicianId, auth_code) {
+            // console.log('OAuth.captureAccessToken: physicianId: ', physicianId);
+            // console.log('OAuth.captureAccessToken: auth_code: ', auth_code);
+              
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.OAuthController.captureAccessToken}',
+                physicianId, auth_code, 
+                function(result, event){
+                        // console.log('OAuth.captureAccessToken: result: ', result);
+                        // console.log('OAuth.captureAccessToken: event: ', event);
+
+                    if (event.status) {
+                        if (result == true) {
+                          setMessage("You have been successfully authorized. You can close this browser tab.");
+                        } else {
+                          setMessage("An error has occurred while authorizing access to your Google Calendar. Please try again.");
+                        }
+                    } else if (event.type === 'exception') {
+                        // handle exception
+                        let message = 'An error has occurred: ' + JSON.stringify(event.message, null, 2)
+                        // console.log('OAuth.captureAccessToken: ' + message);
+                        setMessage(message);
+                    } else {
+                        // handle error
+                        let message = 'An error has occurred: ' + JSON.stringify(event.message, null, 2)
+                        // console.log('OAuth.captureAccessToken: ' + message);
+                        setMessage(message);
+                    }
+                }
+            );
+        }
+    </script>
+    <apex:actionFunction name="successRerender" reRender="content"></apex:actionFunction>
+
+    </apex:form>
+
+  </div>
+  </header>
+  </div>
+  </article>
+
+  </div>
+
+</apex:page>

@@ -1,0 +1,66 @@
+<template>
+
+    <h1 class="slds-text-heading_medium slds-m-left_x-small slds-m-top_small slds-m-bottom_small">Booking Options</h1>
+
+    <!-- Calendar section -->
+    <template if:true={showCalendar}>
+        
+        <table width="100%" cellspacing="0" cellpadding="2">
+
+            <!-- Next / Prev buttons -->
+            <tr valign="top">
+                <th class="calendar"><lightning-button variant="brand" label="<< Previous" title="<< Previous" onclick={handlePreviousWeek}></lightning-button></th>
+                <th class="calendar" colspan="4">
+                    <lightning-button variant="brand" label="Refresh" title="Refresh" onclick={handleRefresh}></lightning-button>
+                </th>
+                <th class="calendar"><lightning-button variant="brand" label="Next >>" title="Next >>" onclick={handleNextWeek}></lightning-button></th>
+            </tr>
+
+            <!-- Date headers -->
+            <tr valign="top">
+                <th class="calendar" style="width: 120px;">Time Slot</th>
+
+                <template for:each={headers} for:item="header">
+                    <th class="calendar" key={header}>{header}</th>
+                </template>
+
+            </tr>
+
+            <!-- Instantiate c-book-day component for each date/time slot -->
+            <template for:each={timeSlots} for:item="time">
+                <tr key={time} valign="top">
+                    <td class="calendar" valign="middle"><c-book-time-label time-slot-date-time={time}></c-book-time-label></td>
+                    <template for:each={dates} for:item="date">
+                        <td key={date} class="calendar"><c-book-day date={date} time={time} physicians={physicians} appointments={appointments} google-events={googleEvents} duration=30 onappointment={handleNewAppointment}></c-book-day></td>
+                    </template>
+                </tr>
+            </template>
+
+        </table>
+
+    </template>
+
+    <!-- New Booking form in a modal popup -->
+    <c-lwc-modal class="modal" onclosedialog={handleCancel}>
+        <div slot="header">
+            New Appointment
+        </div>
+        <div slot="content">
+
+            <p class="slds-m-bottom_small">Are you sure you want to create this appointment?</p>
+
+            <p><b>Specialty:</b> {specialtyName}</p>
+            <p><b>Physician:</b> {selectedPhysicianName}</p>
+            <p><b>Date/Time:</b> {formattedSelectedDateTime}</p>
+
+        </div>
+        <div slot="footer">
+            
+            <lightning-button label="Yes" variant="brand" onclick={handleSave}></lightning-button>
+            &nbsp;&nbsp;
+            <lightning-button label="Cancel" variant="neutral" onclick={handleCancel}></lightning-button>
+
+        </div>   
+    </c-lwc-modal>
+
+</template>

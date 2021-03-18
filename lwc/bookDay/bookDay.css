@@ -1,0 +1,41 @@
+DIV.appointment {
+    width: 100%;
+    height: 40px; 
+    line-height: 40px;
+    text-align: center; 
+    border-top: 1px dashed black;
+    border-bottom: 1px dashed black;
+}
+
+DIV.googleEvent {
+    width: 100%;
+    height: 40px; 
+    line-height: 40px;
+    text-align: center; 
+    border-top: 1px dashed black;
+    border-bottom: 1px dashed black;
+}
+
+DIV.book {
+    width: 100%;
+    height: 40px; 
+    line-height: 40px;
+    text-align: center; 
+}
+
+SPAN.appointment, SPAN.googleEvent, SPAN.book {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+    font-weight: bold;
+}
+
+A.appointment:link, A.appointment:visited {
+    color: black;
+    text-decoration: underline;
+}
+
+A.appointment:hover, A.appointment:active {
+    color: black;
+    text-decoration: none;
+}
